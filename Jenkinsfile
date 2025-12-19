@@ -9,13 +9,12 @@ pipeline {
         CLUSTER = "python-app-gke-cluster"
         ZONE = "us-central1-a"
     }
-docker ps
+
 
     stages {
-
         stage('Checkout') {
             steps {
-                git 'https://github.com/Diwakara-KC/Vote-checker-app.git'
+                git credentialsId: 'github-token', branch: 'main', url: 'https://github.com/Diwakara-KC/Vote-checker-app.git'
             }
         }
 

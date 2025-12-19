@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        PROJECT_ID = "gke-python-ci-cd"
+        PROJECT_ID = "python-app-deployment-demo"
         REGION = "us-central1"
         REPO = "python-app-repo"
-        IMAGE = "python-app"
+        IMAGE = "my-python-app"
         CLUSTER = "python-app-gke-cluster"
         ZONE = "us-central1-a"
     }
@@ -15,7 +15,7 @@ docker ps
 
         stage('Checkout') {
             steps {
-                git 'https://github.com/your-username/your-repo.git'
+                git 'https://github.com/Diwakara-KC/Vote-checker-app.git'
             }
         }
 

@@ -1,0 +1,56 @@
+pipeline {
+    agent any
+
+    environment {
+        APP_NAME = "vote-checker-app"
+        PORT = "5000"
+    }
+
+    stages {
+
+        stage('Clone Code') {
+            steps {
+                git 'https://github.com/Diwakara-KC/Vote-checker-app.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                python3 --version
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install --upgrade pip
+                pip install flask
+                '''
+            }
+        }
+
+        stage('Run Flask App') {
+            steps {
+                sh '''
+                . venv/bin/activate
+                nohup python app.py > app.log 2>&1 &
+                '''
+            }
+        }
+
+        stage('Check Application') {
+            steps {
+                sh '''
+                sleep 5
+                curl http://localhost:5000 || echo "App is not running"
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Flask Vote Checker App is running successfully!"
+        }
+        failure {
+            echo "❌ Pipeline failed! Check logs."
+        }
+    }
+}

@@ -2,36 +2,55 @@ pipeline {
     agent any
 
     environment {
+        PYTHON_PATH = "C:\\Users\\Diwakara\\AppData\\Local\\Programs\\Python\\Python311\\python.exe"
         PORT = "5000"
     }
 
     stages {
 
+        stage('Debug Environment') {
+            steps {
+                bat 'echo Running as:'
+                bat 'whoami'
+                bat 'echo PATH:'
+                bat 'echo %PATH%'
+            }
+        }
+
         stage('Install Dependencies') {
             steps {
-                bat '''
-                python -m venv venv
+                bat """
+                "%PYTHON_PATH%" --version
+                "%PYTHON_PATH%" -m venv venv
                 venv\\Scripts\\activate
-                pip install --upgrade pip
+                "%PYTHON_PATH%" -m pip install --upgrade pip
                 pip install flask
+                """
+            }
+        }
+
+        stage('Kill Existing App (if any)') {
+            steps {
+                bat '''
+                taskkill /F /IM python.exe || exit 0
                 '''
             }
         }
 
         stage('Run Flask App') {
             steps {
-                bat '''
+                bat """
                 venv\\Scripts\\activate
-                start /B python app.py
-                '''
+                start /B "%PYTHON_PATH%" app.py
+                """
             }
         }
 
-        stage('Check Application') {
+        stage('Verify Application') {
             steps {
                 bat '''
                 timeout /t 5
-                curl http://localhost:5000
+                curl http://localhost:5000 || echo App not reachable
                 '''
             }
         }
@@ -39,10 +58,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ App is running successfully!"
+            echo "✅ Flask Vote Checker App is running successfully!"
         }
         failure {
-            echo "❌ Pipeline failed!"
+            echo "❌ Pipeline failed! Check logs carefully."
         }
     }
 }

@@ -3,65 +3,67 @@ pipeline {
 
     environment {
         PYTHON_PATH = "C:\\Users\\Diwakara\\AppData\\Local\\Programs\\Python\\Python311\\python.exe"
-        PORT = "5000"
     }
 
     stages {
 
-        stage('Debug Environment') {
+        stage('Check Python') {
             steps {
-                bat 'echo Running as:'
-                bat 'whoami'
-                bat 'echo PATH:'
-                bat 'echo %PATH%'
+                bat """
+                "%PYTHON_PATH%" --version
+                """
+            }
+        }
+
+        stage('Create Virtual Env') {
+            steps {
+                bat """
+                "%PYTHON_PATH%" -m venv venv
+                """
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 bat """
-                "%PYTHON_PATH%" --version
-                "%PYTHON_PATH%" -m venv venv
-                venv\\Scripts\\activate
-                "%PYTHON_PATH%" -m pip install --upgrade pip
-                pip install flask
+                venv\\Scripts\\python.exe -m pip install --upgrade pip
+                venv\\Scripts\\python.exe -m pip install flask
                 """
             }
         }
 
-        stage('Kill Existing App (if any)') {
+        stage('Kill Existing App') {
             steps {
-                bat '''
-                taskkill /F /IM python.exe || exit 0
-                '''
+                bat """
+                taskkill /F /IM python.exe >nul 2>&1 || exit 0
+                """
             }
         }
 
         stage('Run Flask App') {
             steps {
                 bat """
-                venv\\Scripts\\activate
-                start /B "%PYTHON_PATH%" app.py
+                start /B venv\\Scripts\\python.exe app.py
                 """
             }
         }
 
-        stage('Verify Application') {
+        stage('Verify App') {
             steps {
-                bat '''
-                timeout /t 5
-                curl http://localhost:5000 || echo App not reachable
-                '''
+                bat """
+                timeout /t 5 >nul
+                curl http://localhost:5000
+                """
             }
         }
     }
 
     post {
         success {
-            echo "✅ Flask Vote Checker App is running successfully!"
+            echo "✅ App deployed successfully!"
         }
         failure {
-            echo "❌ Pipeline failed! Check logs carefully."
+            echo "❌ Pipeline failed!"
         }
     }
 }
